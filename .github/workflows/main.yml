@@ -1,0 +1,31 @@
+name: Build FreeWarGamer Store
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/openorbis/toolchain:latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - name: Build Store
+      run: |
+        cd Store
+        make
+
+    - name: Upload PKG artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: FreeWarGamer-Store-PKG
+        path: |
+          Store/*.pkg
+          Store/*.self
