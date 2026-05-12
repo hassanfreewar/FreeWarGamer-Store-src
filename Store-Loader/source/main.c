@@ -298,7 +298,7 @@ void loader_rooted(){
 		logshit("[STORE_GL_Loader:%s:%i] -----  STORE Version: %s  -----\n", __FUNCTION__, __LINE__, completeVersion);
 		logshit("----------------------------------------------- -------------------------\n");
 
-		config.opt[CDN_URL] = "https://api.pkg-zone.com";
+		config.opt[CDN_URL] = "https://free-wargamer.com/store-api";
 		config.SECURE_BOOT = true;
 		config.Copy_INI = false;
 
@@ -325,7 +325,7 @@ void loader_rooted(){
 				logshit("[STORE_GL_Loader:%s:%i] ----- APP INI Not Found, Making ini ---\n", __FUNCTION__, __LINE__);
 
 				memset(&buff[0], 0, sizeof buff);
-				snprintf(&buff[0], sizeof buff, "[Settings]\nCDN=https://api.pkg-zone.com\nSecure_Boot=1\ntemppath=/user/app/NPXS39041/downloads\nStoreOnUSB=0\nShow_install_prog=1\nHomeMenu_Redirection=0\nDaemon_on_start=1\nLegacy=0\n");
+				snprintf(&buff[0], sizeof buff, "[Settings]\nCDN=https://free-wargamer.com/store-api\nSecure_Boot=1\ntemppath=/user/app/NPXS39041/downloads\nStoreOnUSB=0\nShow_install_prog=1\nHomeMenu_Redirection=0\nDaemon_on_start=1\nLegacy=0\n");
 
 				int fd = open("/user/app/NPXS39041/settings.ini", O_WRONLY | O_CREAT | O_TRUNC, 0777);
 				if (fd >= 0)
