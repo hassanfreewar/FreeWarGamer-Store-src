@@ -18,7 +18,10 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang lld make wget unzip python3 git
+        sudo apt-get install -y clang-15 lld-15 make wget unzip python3 git
+        sudo ln -sf /usr/bin/clang-15 /usr/bin/clang
+        sudo ln -sf /usr/bin/clang++-15 /usr/bin/clang++
+        sudo ln -sf /usr/bin/ld.lld-15 /usr/bin/ld.lld
 
     - name: Setup OpenOrbis Toolchain
       run: |
@@ -26,10 +29,18 @@ jobs:
         unzip toolchain.zip -d /opt/
         mv /opt/OpenOrbis-PS4-Toolchain-0.5.2 /opt/openorbis
         echo "OO_PS4_TOOLCHAIN=/opt/openorbis" >> $GITHUB_ENV
+        ls /opt/openorbis/bin/linux/ || echo "No linux binaries found"
+
+    - name: Download OpenOrbis Linux binaries
+      run: |
+        wget https://github.com/OpenOrbis/create-fself/releases/latest/download/create-fself-linux -O /opt/openorbis/bin/linux/create-fself || true
+        wget https://github.com/OpenOrbis/create-gp4/releases/latest/download/create-gp4-linux -O /opt/openorbis/bin/linux/create-gp4 || true
+        chmod +x /opt/openorbis/bin/linux/* || true
 
     - name: Build Store
       run: |
         export OO_PS4_TOOLCHAIN=/opt/openorbis
+        export PATH=$PATH:/opt/openorbis/bin/linux
         cd Store
         make
 
