@@ -18,24 +18,39 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang-15 lld-15 make wget unzip python3 git
-        sudo ln -sf /usr/bin/clang-15 /usr/bin/clang
-        sudo ln -sf /usr/bin/clang++-15 /usr/bin/clang++
-        sudo ln -sf /usr/bin/ld.lld-15 /usr/bin/ld.lld
+        sudo apt-get install -y clang lld make wget unzip python3 git curl
 
     - name: Setup OpenOrbis Toolchain
       run: |
+        mkdir -p /opt/openorbis
         wget https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/archive/refs/tags/v0.5.2.zip -O toolchain.zip
-        unzip toolchain.zip -d /opt/
-        mv /opt/OpenOrbis-PS4-Toolchain-0.5.2 /opt/openorbis
+        unzip toolchain.zip -d /tmp/
+        cp -r /tmp/OpenOrbis-PS4-Toolchain-0.5.2/* /opt/openorbis/
         echo "OO_PS4_TOOLCHAIN=/opt/openorbis" >> $GITHUB_ENV
-        ls /opt/openorbis/bin/linux/ || echo "No linux binaries found"
 
-    - name: Download OpenOrbis Linux binaries
+    - name: Download prebuilt binaries
       run: |
-        wget https://github.com/OpenOrbis/create-fself/releases/latest/download/create-fself-linux -O /opt/openorbis/bin/linux/create-fself || true
-        wget https://github.com/OpenOrbis/create-gp4/releases/latest/download/create-gp4-linux -O /opt/openorbis/bin/linux/create-gp4 || true
-        chmod +x /opt/openorbis/bin/linux/* || true
+        mkdir -p /opt/openorbis/bin/linux
+
+        # create-fself
+        wget https://github.com/OpenOrbis/create-fself/releases/download/v0.1.2/create-fself-linux -O /opt/openorbis/bin/linux/create-fself
+        chmod +x /opt/openorbis/bin/linux/create-fself
+
+        # create-gp4
+        wget https://github.com/OpenOrbis/create-gp4/releases/latest/download/binaries.tar.gz -O /tmp/create-gp4.tar.gz
+        tar -xzf /tmp/create-gp4.tar.gz -C /opt/openorbis/bin/linux/ || true
+
+        # PkgTool
+        wget https://github.com/maxton/LibOrbisPkg/releases/latest/download/PkgEditor-0.2.231.zip -O /tmp/pkgtool.zip
+        unzip /tmp/pkgtool.zip -d /opt/openorbis/bin/linux/
+        chmod +x /opt/openorbis/bin/linux/PkgTool.Core || true
+
+        ls /opt/openorbis/bin/linux/
+
+    - name: Download musl headers
+      run: |
+        git clone https://github.com/OpenOrbis/musl.git /tmp/musl
+        cp -r /tmp/musl/include/* /opt/openorbis/include/ || true
 
     - name: Build Store
       run: |
