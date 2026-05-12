@@ -8,8 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/openorbis/toolchain:latest
 
     steps:
     - name: Checkout code
@@ -17,8 +15,20 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang lld make wget unzip python3
+
+    - name: Setup OpenOrbis Toolchain
+      run: |
+        wget https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.2/OpenOrbis.PS4.Toolchain.v0.5.2.exe -O toolchain.exe
+        unzip -o toolchain.exe -d /opt/openorbis || true
+        echo "OO_PS4_TOOLCHAIN=/opt/openorbis" >> $GITHUB_ENV
+
     - name: Build Store
       run: |
+        export OO_PS4_TOOLCHAIN=/opt/openorbis
         cd Store
         make
 
