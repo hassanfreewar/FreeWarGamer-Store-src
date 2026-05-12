@@ -239,7 +239,7 @@ int initGL_for_the_store(bool reload_apps, int ref_pages)
 
     //dont_show_donate_message
     if (!if_exists("/data/DSDM"))
-     msgok(NORMAL, "مرحباً بك في Free War Gamer Store!\n\nللاشتراك والحصول على سيريال زور موقعنا:\nhttps://yoursite.com");
+     msgok(NORMAL, "مرحباً بك في Free War Gamer Store!\n\nللاشتراك والحصول على سيريال زور موقعنا:\nhttps://free-wargamer.com");
     
 
     // all fine.
