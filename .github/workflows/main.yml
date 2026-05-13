@@ -1,23 +1,62 @@
-name: Build Store
+name: Build FreeWarGamer Store
 
 on:
+  push:
+    branches: [ master ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
       with:
         submodules: recursive
 
-    - name: Build with OpenOrbis Action
-      uses: OpenOrbis/toolchain-action@main
-      with:
-        version: v0.5.2
-        command: cd Store && make
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang lld make git golang-go dotnet-runtime-6.0 wget unzip
 
-    - uses: actions/upload-artifact@v4
+    - name: Setup OpenOrbis Toolchain
+      run: |
+        mkdir -p /opt/openorbis
+        curl -sL https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/download/v0.5.2/v0.5.2.tar.gz | sudo tar -xz --strip-components=2 -C /opt/openorbis OpenOrbis/PS4Toolchain/include OpenOrbis/PS4Toolchain/lib OpenOrbis/PS4Toolchain/link.x
+        echo "OO_PS4_TOOLCHAIN=/opt/openorbis" >> $GITHUB_ENV
+
+    - name: Build create-fself
+      run: |
+        git clone https://github.com/OpenOrbis/create-fself.git /tmp/create-fself
+        cd /tmp/create-fself/cmd/create-fself
+        sed -i 's|..\\..\\pkg\\fself|../../pkg/fself|g' go.mod
+        sed -i 's|..\\..\\\pkg\\oelf|../../pkg/oelf|g' go.mod
+        sed -i 's|..\\..\\\\pkg\\oelf|../../pkg/oelf|g' go.mod
+        go build -o /opt/openorbis/bin/linux/create-fself .
+        chmod +x /opt/openorbis/bin/linux/create-fself
+
+    - name: Build PkgTool
+      run: |
+        git clone https://github.com/maxton/LibOrbisPkg.git /tmp/LibOrbisPkg
+        cd /tmp/LibOrbisPkg/PkgTool.Core
+        dotnet build -c Release
+        sudo mkdir -p /opt/openorbis/bin/linux
+        sudo cp bin/Release/netcoreapp3.0/PkgTool.Core.dll /opt/openorbis/bin/linux/
+        sudo cp bin/Release/netcoreapp3.0/PkgTool.Core.exe /opt/openorbis/bin/linux/PkgTool.Core
+        sudo chmod +x /opt/openorbis/bin/linux/PkgTool.Core
+
+    - name: Build Store
+      run: |
+        export OO_PS4_TOOLCHAIN=/opt/openorbis
+        export PATH=$PATH:/opt/openorbis/bin/linux
+        cd Store
+        make
+
+    - name: Upload PKG
+      uses: actions/upload-artifact@v4
       with:
-        name: FreeWarGamer-Store
-        path: Store/*.pkg
+        name: FreeWarGamer-Store-PKG
+        path: |
+          Store/*.pkg
+          Store/*.self
